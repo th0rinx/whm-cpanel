@@ -23,5 +23,15 @@ sed -i "s/^Hostname=.*/Hostname=${HOSTNAME}/" $CONFIG_FILE
 systemctl restart zabbix-agent2
 systemctl enable zabbix-agent2
 
-# Verificar estado del servicio
+# Configurar CSF para abrir el puerto 10050
+csf -a ${ZABBIX_SERVER_IP} # Permitir la IP del servidor Zabbix
+csf -d ${ZABBIX_SERVER_IP} # Denegar otras conexiones
+
+# Añadir el puerto 10050 a las reglas de CSF
+csf -a ${ZABBIX_SERVER_IP}
+sed -i '/^TCP_IN =/ s/"$/ 10050"/' /etc/csf/csf.conf
+sed -i '/^TCP_OUT =/ s/"$/ 10050"/' /etc/csf/csf.conf
+csf -r
+
+# Verificar estado del servicio de Zabbix Agent 2
 systemctl status zabbix-agent2
