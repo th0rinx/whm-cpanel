@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+# Descargar e instalar Softaculous
 wget -N http://files.softaculous.com/install.sh
 chmod 755 install.sh
 ./install.sh
@@ -24,13 +24,8 @@ sudo perl /usr/local/csf/bin/csftest.pl
 sudo systemctl start csf
 sudo systemctl enable csf
 
-
 # Instalar el plugin de Acronis para WHM
 echo "Instalando el plugin de Acronis para WHM..."
-sh <(curl -L https://download.acronis.com/ci/cpanel/stable/install_acronis_cpanel.sh || wget -O - https://download.acronis.com/ci/cpanel/stable/install_acronis_cpanel.sh)
+curl -L https://download.acronis.com/ci/cpanel/stable/install_acronis_cpanel.sh | sudo bash || wget -O - https://download.acronis.com/ci/cpanel/stable/install_acronis_cpanel.sh | sudo bash
 
-
-
-
-
-echo "Plugins Insalados correctamente"
+echo "Plugins instalados correctamente"
