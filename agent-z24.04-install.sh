@@ -1,34 +1,36 @@
 #!/bin/bash
 
 # Variables
+ZABBIX_REPO_URL="https://repo.zabbix.com/zabbix/7.2/release/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest_7.2+ubuntu24.04_all.deb"
+ZABBIX_REPO_PKG="zabbix-release_latest_7.2+ubuntu24.04_all.deb"
 ZABBIX_SERVER_IP="165.232.131.134"
+CONFIG_FILE="/etc/zabbix/zabbix_agentd.conf"
 HOSTNAME=$(hostname)
-CONFIG_FILE="/etc/zabbix/zabbix_agent2.conf"
-ZABBIX_REPO_URL="https://repo.zabbix.com/zabbix/6.4/ubuntu/pool/main/z/zabbix-release/zabbix-release_6.4-1+ubuntu24.04_all.deb"
-ZABBIX_REPO_PKG="zabbix-release_6.4-1+ubuntu24.04_all.deb"
 
-# Actualizar lista de paquetes
+# 1. Actualizar lista de paquetes
 apt update -y
 
-# Descargar e instalar el repositorio de Zabbix
-wget $ZABBIX_REPO_URL -O /tmp/$ZABBIX_REPO_PKG
-dpkg -i /tmp/$ZABBIX_REPO_PKG
+# 2. Descargar e instalar el repositorio de Zabbix 7.2
+wget "$ZABBIX_REPO_URL" -O "/tmp/$ZABBIX_REPO_PKG"
+dpkg -i "/tmp/$ZABBIX_REPO_PKG"
 
-# Actualizar de nuevo después de agregar el repositorio Zabbix
+# 3. Actualizar luego de agregar el repositorio
 apt update -y
 
-# Instalar Zabbix agent2
-apt install -y zabbix-agent2 zabbix-agent2-plugin-*
+# 4. Instalar Zabbix Agent (clásico)
+apt install -y zabbix-agent
 
-# Modificar ListenPort, Server, ServerActive y Hostname en el archivo de configuración
-sed -i "s/^ListenPort=.*/ListenPort=10050/" $CONFIG_FILE
-sed -i "s/^Server=.*/Server=${ZABBIX_SERVER_IP}/" $CONFIG_FILE
-sed -i "s/^ServerActive=.*/ServerActive=${ZABBIX_SERVER_IP}/" $CONFIG_FILE
-sed -i "s/^Hostname=.*/Hostname=${HOSTNAME}/" $CONFIG_FILE
+# 5. Configurar el agente
+sed -i "s/^Server=.*/Server=${ZABBIX_SERVER_IP}/" "$CONFIG_FILE"
+sed -i "s/^ServerActive=.*/ServerActive=${ZABBIX_SERVER_IP}/" "$CONFIG_FILE"
+sed -i "s/^Hostname=.*/Hostname=${HOSTNAME}/" "$CONFIG_FILE"
+sed -i "s/^# ListenPort=.*/ListenPort=10050/" "$CONFIG_FILE"
+sed -i "s/^# ListenIP=.*/ListenIP=0.0.0.0/" "$CONFIG_FILE"
 
-# Reiniciar el servicio de Zabbix Agent 2 y habilitar en el arranque del sistema
-systemctl restart zabbix-agent2
-systemctl enable zabbix-agent2
+# 6. Reiniciar y habilitar el agente
+systemctl restart zabbix-agent
+systemctl enable zabbix-agent
 
-# Verificar estado del servicio
-systemctl status zabbix-agent2
+# 7. Verificar estado y puerto
+systemctl status zabbix-agent --no-pager
+ss -tuln | grep 10050
